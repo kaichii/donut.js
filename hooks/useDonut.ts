@@ -46,12 +46,12 @@ function draw(
       for (let phi = 0; phi < 6.28; phi += spacing2) {
         const [sinP, cosP] = [sin(phi), cos(phi)];
 
-        // 在 x,y 平面上绘制圆环(平面)，半径 R1, 圆心 (0, R2, 0)
+        // 在 X,Y 平面上绘制圆环(平面)，半径 r1, 圆心 (0, r2, 0)
         let [x, y, z] = [r1 * sinT, r2 + r1 * cosT, 0];
         // 单位向量
         let [dx, dy, dz] = [sinT, cosT, 0];
 
-        // 绕 X 轴旋转 2Pi 得到圆环（3D），半径 R2
+        // 绕 X 轴旋转 2Pi 得到圆环（3D），半径 r2
         // (x,y,z)·[1 0 0\n 0 cosP -sinP\n 0 sinP cosP]
         [x, y, z] = [x, y * cosP - z * sinP, y * sinP + z * cosP];
         [dx, dy, dz] = [dx, dy * cosP - dz * sinP, dy * sinP + dz * cosP];
@@ -64,6 +64,7 @@ function draw(
         [x, y, z] = [x * cosB - y * sinB, x * sinB + y * cosB, z];
         [dx, dy, dz] = [dx * cosB - dy * sinB, dx * sinB + dy * cosB, dz];
 
+        // 1/z
         const ooz = 1 / (z + k2);
 
         const xp = ((width >> 1) + k1 * ooz * x);
@@ -71,7 +72,7 @@ function draw(
 
         const [lx, ly, lz] = light;
 
-        // 归一化
+        // 法向量·light
         const L = 0.71 * (dx * lx + dy * ly + dz * lz);
 
         if (L > 0) {
