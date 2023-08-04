@@ -11,11 +11,9 @@ type DonutOptions = {
   spacing2: number
   light: [number, number, number],
   width?: number;
-  height?: number
-  pixel?: {
-    color: { r: number, g: number, b: number }
-    size: number
-  }
+  height?: number,
+  pixelColor?: { r: number, g: number, b: number }
+  pixelSize?: number
 }
 
 let A = 1,
@@ -31,12 +29,12 @@ function draw(
   options: Omit<DonutOptions, "animate" | "width" | "height">
 ) {
   const { width, height } = ctx.canvas;
-  const { r1, r2, k1, k2, spacing1, spacing2, light, pixel = { color: { r: 255, g: 255, b: 255 }, size: 1 } } = options;
+  const { r1, r2, k1, k2, spacing1, spacing2, light, pixelColor = { r: 255, g: 255, b: 255 }, pixelSize = 2 } = options;
 
   clean(ctx);
 
   (function () {
-    A += 0.07;
+    A += 0.04;
     B += 0.02;
     const { sin, cos } = Math;
 
@@ -45,47 +43,48 @@ function draw(
     for (let theta = 0; theta < 6.28; theta += spacing1) {
       const [sinT, cosT] = [sin(theta), cos(theta)];
 
-      // 在 x,y 平面上绘制圆环(平面)，半径 R1, 圆心 (0, R2, 0)
-      let [x, y, z] = [r1 * sinT, r2 + r1 * cosT, 0];
-
       for (let phi = 0; phi < 6.28; phi += spacing2) {
         const [sinP, cosP] = [sin(phi), cos(phi)];
 
-        // 绕 X 轴旋转 2Pi 得到 donut，半径 R2
+        // 在 x,y 平面上绘制圆环(平面)，半径 R1, 圆心 (0, R2, 0)
+        let [x, y, z] = [r1 * sinT, r2 + r1 * cosT, 0];
+        // 单位向量
+        let [dx, dy, dz] = [sinT, cosT, 0];
+
+        // 绕 X 轴旋转 2Pi 得到圆环（3D），半径 R2
         // (x,y,z)·[1 0 0\n 0 cosP -sinP\n 0 sinP cosP]
         [x, y, z] = [x, y * cosP - z * sinP, y * sinP + z * cosP];
+        [dx, dy, dz] = [dx, dy * cosP - dz * sinP, dy * sinP + dz * cosP];
 
         // 绕 Y 轴旋转 A
         [x, y, z] = [x * cosA + z * sinA, y, z * cosA - x * sinA];
+        [dx, dy, dz] = [dx * cosA + dz * sinA, dy, dz * cosA - dx * sinA];
 
         // 绕 Z 轴旋转 B
         [x, y, z] = [x * cosB - y * sinB, x * sinB + y * cosB, z];
+        [dx, dy, dz] = [dx * cosB - dy * sinB, dx * sinB + dy * cosB, dz];
 
         const ooz = 1 / (z + k2);
 
         const xp = ((width >> 1) + k1 * ooz * x);
         const yp = ((height >> 1) - k1 * ooz * y);
 
-        let [lx, ly, lz] = light;
+        const [lx, ly, lz] = light;
 
-        const L =
-          0.7 *
-          (cosP * cosT * sinB -
-            cosA * cosT * sinP -
-            sinA * sinT +
-            cosB * (cosA * sinT - cosT * sinA * sinP));
+        // 归一化
+        const L = 0.71 * (dx * lx + dy * ly + dz * lz);
 
         if (L > 0) {
-          ctx.fillStyle = `rgba(${pixel.color.r},${pixel.color.g},${pixel.color.b},${L})`;
+          ctx.fillStyle = `rgba(${pixelColor.r},${pixelColor.g},${pixelColor.b},${L})`;
 
-          ctx.fillRect(xp, yp, pixel.size, pixel.size);
+          ctx.fillRect(xp, yp, pixelSize, pixelSize);
         }
       }
     }
   })();
 }
 
-export default function useDonut({ animate, r1, r2, k1, k2, width, height, spacing1, spacing2, light, pixel }: DonutOptions) {
+export default function useDonut({ animate, r1, r2, k1, k2, width, height, spacing1, spacing2, light, pixelColor, pixelSize }: DonutOptions) {
   const id = useRef<number>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -105,11 +104,11 @@ export default function useDonut({ animate, r1, r2, k1, k2, width, height, spaci
     const ctx = canvasRef.current?.getContext("2d");
 
     if (ctx) {
-      draw(ctx, { r1, r2, k1, k2, spacing1, spacing2, light, pixel });
+      draw(ctx, { r1, r2, k1, k2, spacing1, spacing2, light, pixelColor, pixelSize });
     }
 
     id.current = requestAnimationFrame(render);
-  }, [r1, r2, k1, k2, spacing1, spacing2, light, pixel]);
+  }, [r1, r2, k1, k2, spacing1, spacing2, light, pixelColor, pixelSize]);
 
   useEffect(() => {
     if (animate) {

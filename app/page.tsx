@@ -17,8 +17,6 @@ export default function Home() {
 			color,
 			size,
 		},
-		set,
-		get,
 	] = useControls(() => ({
 		animate: false,
 		canvas: {
@@ -30,25 +28,43 @@ export default function Home() {
 		light: {
 			value: [0, 1, -1],
 			min: -1,
-			step: 1,
+			step: 0.01,
 			max: 1,
 		},
-		pixel: folder({
-			color: {
-				r: 255,
-				g: 255,
-				b: 255,
+		pixel: folder(
+			{
+				color: {
+					r: 255,
+					g: 255,
+					b: 255,
+				},
+				size: 2,
 			},
-			size: 2,
-		}),
-		options: folder({
-			r1: 1,
-			r2: 2,
-			k1: 250,
-			k2: 4,
-			spacing1: 0.3,
-			spacing2: 0.1,
-		}),
+			{
+				collapsed: true,
+			}
+		),
+		options: folder(
+			{
+				r1: 1,
+				r2: 2,
+				k1: 250,
+				k2: 6,
+				spacing1: {
+					value: 0.3,
+					step: 0.01,
+					min: 0.02,
+				},
+				spacing2: {
+					value: 0.07,
+					step: 0.01,
+					min: 0.02,
+				},
+			},
+			{
+				collapsed: true,
+			}
+		),
 	}));
 
 	const [ref] = useDonut({
@@ -62,6 +78,8 @@ export default function Home() {
 		width,
 		height,
 		light,
+		pixelColor: color,
+		pixelSize: size,
 	});
 
 	return (
